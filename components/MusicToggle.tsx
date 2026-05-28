@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const SRC = "/audio/out-of-my-league.wav";
+const SRC = "/audio/out-of-my-league.mp3";
 // New key + value scheme so any leftover "1" from earlier buggy versions is
 // ignored (which would have stuck the page on muted). Anything other than
 // "off" means: play by default.

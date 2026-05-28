@@ -17,3 +17,6 @@ dist
 *.log
 .vercel
 next-env.d.ts
+
+# Keep raw audio sources out of git/Vercel — only the encoded mp3 ships
+public/audio/*.wav

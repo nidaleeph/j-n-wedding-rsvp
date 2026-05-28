@@ -99,8 +99,86 @@ drizzle.config.ts
    [`components/Details.tsx`](components/Details.tsx). Swap for the exact pin.
 4. **Seed the `guests` table** — see SQL example above.
 
-## Deploy
+## Deploy to Vercel
 
-Designed to deploy to Vercel without modification. Push to a Git repo,
-import into Vercel, add `DATABASE_URL` as an environment variable, and ship.
-Vercel Postgres, Neon, and Supabase all work.
+This project deploys to Vercel cleanly — Next.js is auto-detected, no
+`vercel.json` needed. The only out-of-the-box infra you have to set up is the
+database. We recommend **Neon** (native Postgres, scales-to-zero free tier).
+
+### 1. Create the database (Neon)
+
+1. Go to <https://neon.tech> → New Project → name it `jn-wedding`, region close
+   to your visitors (e.g. **AWS Singapore** for PH guests).
+2. From the dashboard, copy the **Pooled connection string**. It looks like:
+   ```
+   postgresql://USER:PASSWORD@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require
+   ```
+   The **pooled** variant is important — Vercel serverless functions open
+   short-lived connections, and Neon's pooler keeps that scalable.
+
+### 2. Apply the schema to your Neon DB
+
+Once locally, against the new database, with the URL from step 1:
+
+```bash
+DATABASE_URL='postgresql://...neon...?sslmode=require' npm run db:migrate
+```
+
+This runs the SQL file under [`drizzle/`](drizzle/) and creates the `guests`
+and `rsvps` tables. (You only need to do this once on first deploy, and again
+whenever you change `db/schema.ts` — re-run `npm run db:generate` to produce a
+new SQL file first, commit it, then re-run migrate.)
+
+### 3. Push the code to GitHub
+
+```bash
+git init
+git add -A
+git commit -m "initial deploy"
+gh repo create jn-wedding-rsvp --private --source=. --push
+# (or create a repo manually and push)
+```
+
+### 4. Import on Vercel
+
+1. <https://vercel.com/new> → import the repo.
+2. **Framework Preset:** Next.js (auto-detected).
+3. **Environment Variables** — add one:
+   - `DATABASE_URL` = the same pooled Neon URL from step 1
+   - Apply to: Production, Preview, Development (or at least Production)
+4. Click **Deploy**.
+
+> **Tip:** If you used Neon's "Vercel Postgres" integration from the Vercel
+> marketplace, the env var is wired automatically and you can skip step 3.
+
+### 5. Seed the invitation list (anytime)
+
+```bash
+DATABASE_URL='postgresql://...neon...?sslmode=require' \
+  psql -c "INSERT INTO guests (full_name, name_normalized) VALUES
+    ('Maria Santos', 'maria santos'),
+    ('Juan Dela Cruz', 'juan dela cruz');"
+```
+
+Submitted RSVPs whose name doesn't match a row in `guests` are still stored
+(`matched_guest_id` will be `NULL`) so you can spot typos and fix them.
+
+## Audio
+
+- Source: `public/audio/out-of-my-league.mp3` (4.3 MB, 160 kb/s).
+- The raw `.wav` source is **ignored by git** (see `.gitignore`) so it never
+  ships to Vercel — only the encoded MP3 does. If you re-export the song,
+  drop a new `.wav` next to the MP3 and re-run:
+  ```bash
+  ffmpeg -y -i public/audio/out-of-my-league.wav \
+    -codec:a libmp3lame -b:a 160k -ar 44100 \
+    public/audio/out-of-my-league.mp3
+  ```
+
+## Costs at a glance
+
+- **Vercel Hobby:** free; covers this site easily.
+- **Neon Free:** 0.5 GB storage, scales to zero. Plenty of room for an RSVP list.
+- **Bandwidth:** the 4.3 MB MP3 dominates — ~430 MB per 100 guest plays.
+  Hobby plan includes 100 GB/month, so you have ~23 000 plays before hitting
+  the cap.
