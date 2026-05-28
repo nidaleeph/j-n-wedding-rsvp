@@ -1,0 +1,19 @@
+node_modules
+.next
+out
+build
+dist
+
+# env
+.env
+.env.local
+.env*.local
+
+# drizzle
+.drizzle
+
+# misc
+.DS_Store
+*.log
+.vercel
+next-env.d.ts
