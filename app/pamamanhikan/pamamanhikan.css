@@ -1,0 +1,823 @@
+/* ============================================================
+   PAMAMANHIKAN PRESENTATION DECK
+   Ported from the Claude Design project
+   (08e5bea5-9dd2-476e-b8dd-964676a8fb4d · Pamamanhikan.html).
+
+   Every rule is scoped under `.pmk` so the deck and the RSVP
+   site in globals.css cannot reach into each other. Two notes:
+
+   1. globals.css defines a bare `.eyebrow` that is inline-flex
+      and draws gold dashes via ::before/::after. The deck's
+      eyebrow is a plain block, so both are reset below.
+   2. Keyframes are prefixed `pmk-` so they can never clash with
+      the ~20 animation names already in globals.css.
+
+   Design rules for `.solo` and `.collage .a`–`.f` were dropped:
+   no slide in this deck uses them.
+   ============================================================ */
+
+.pmk {
+  --emerald-950: #04221a;
+  --emerald-900: #062f24;
+  --emerald-800: #0a3f30;
+  --emerald-700: #0f5440;
+  --emerald-600: #1a6e54;
+  --emerald-300: #6db59d;
+  --gold-800: #6f5118;
+  --gold-700: #8a6a23;
+  --gold-600: #b8893d;
+  --gold-500: #c9a961;
+  --gold-400: #d9c089;
+  --gold-300: #e8d4a4;
+  --champagne: #f3e6cd;
+  --champagne-light: #f8efde;
+  --champagne-50: #fcf7ec;
+  --cream: #f5ead0;
+  --ivory: #fbf5e6;
+  --serif: "Cormorant Garamond", serif;
+  --display: "Italiana", serif;
+  --script: "Tangerine", cursive;
+  --sans: "Inter", system-ui, sans-serif;
+  --r: 4px;
+
+  /* Measured height of the fixed chrome. The bottom bar is always taller
+     because it carries the nav buttons, so centring on the slide box alone
+     drops content below the centre of the band you can actually see.
+     `.fit > .wrap` subtracts half the difference. Keep these in step with
+     any change to .bar / .nav-btn / .brand sizing. */
+  --chrome-top: 62px;
+  --chrome-bot: 78px;
+
+  font-family: var(--serif);
+  font-size: 22px;
+  line-height: 1.6;
+  color: var(--emerald-900);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The deck is a fixed, full-viewport surface — lock the page behind it. */
+body.pmk-locked {
+  overflow: hidden;
+  height: 100vh;
+  background: var(--champagne-50);
+}
+
+.pmk img { display: block; max-width: 100%; }
+.pmk button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
+.pmk input { font: inherit; color: inherit; }
+.pmk a { color: var(--gold-700); }
+.pmk a:hover { color: var(--emerald-700); }
+.pmk :focus-visible { outline: 2px solid var(--gold-600); outline-offset: 3px; }
+
+/* ─── shared bits ─── */
+.pmk .eyebrow {
+  display: block; /* reset: globals.css makes .eyebrow inline-flex */
+  gap: 0;
+  font-family: var(--sans);
+  font-size: 14px;
+  letter-spacing: .45em;
+  text-transform: uppercase;
+  color: var(--gold-700);
+  white-space: nowrap;
+}
+/* reset: globals.css draws gold dashes either side of every .eyebrow */
+.pmk .eyebrow::before,
+.pmk .eyebrow::after { content: none; }
+
+.pmk .script { font-family: var(--script); color: var(--gold-600); line-height: .85; }
+.pmk .rule { width: 64px; height: 1px; background: var(--gold-500); position: relative; margin: 0 auto; }
+.pmk .rule::before,
+.pmk .rule::after {
+  content: ""; position: absolute; top: 50%;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--gold-500); transform: translateY(-50%);
+}
+.pmk .rule::before { left: -12px; }
+.pmk .rule::after { right: -12px; }
+.pmk .corner { position: absolute; width: 26px; height: 26px; border: 1px solid var(--gold-500); pointer-events: none; }
+.pmk .corner.tl { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.pmk .corner.br { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+
+/* ══════════ LOGIN ══════════ */
+.pmk .gate {
+  position: fixed; inset: 0; z-index: 300;
+  display: flex; align-items: center; justify-content: center;
+  overflow-y: auto; overflow-x: hidden; padding: 24px;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(26,110,84,.5), transparent 55%),
+    radial-gradient(ellipse at 70% 80%, rgba(15,84,64,.55), transparent 60%),
+    radial-gradient(ellipse at center, #0a3f30, #062f24 60%, #04221a);
+  transition: opacity .7s ease, visibility .7s ease;
+}
+.pmk .gate::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.45));
+}
+.pmk .gate.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.pmk .gate-card {
+  position: relative; z-index: 2; width: 100%; max-width: 420px;
+  margin: auto; flex: 0 0 auto; padding: 44px 34px 36px; text-align: center;
+  background: linear-gradient(180deg, var(--champagne-50), var(--cream));
+  border: 1px solid var(--gold-500);
+  box-shadow: 0 60px 100px -50px rgba(0,0,0,.7);
+  animation: pmk-gate-in .9s cubic-bezier(.2,.7,.2,1) both;
+}
+@keyframes pmk-gate-in {
+  from { opacity: 0; transform: translateY(26px) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+.pmk .gate-mono { font-family: var(--script); font-size: 76px; line-height: .8; color: var(--gold-600); margin-bottom: 6px; }
+.pmk .gate-title { font-family: var(--display); font-size: 28px; letter-spacing: .14em; color: var(--emerald-800); margin: 10px 0 4px; }
+.pmk .gate-sub { font-style: italic; font-size: 15px; color: color-mix(in oklab, var(--emerald-800), transparent 35%); margin-bottom: 26px; }
+.pmk .gate-field { text-align: left; margin-bottom: 16px; }
+.pmk .gate-field label {
+  display: block; font-family: var(--sans); font-size: 10px;
+  letter-spacing: .34em; text-transform: uppercase;
+  color: var(--gold-700); margin-bottom: 5px;
+}
+.pmk .gate-field input {
+  width: 100%; background: transparent; border: none;
+  border-bottom: 1px solid color-mix(in oklab, var(--gold-500), transparent 50%);
+  padding: 8px 0 10px; font-size: 18px; outline: none; transition: border-color .3s;
+}
+.pmk .gate-field input:focus { border-bottom-color: var(--emerald-700); }
+.pmk .gate-btn {
+  width: 100%; margin-top: 12px; padding: 16px;
+  background: var(--emerald-800); color: var(--champagne);
+  border: 1px solid var(--emerald-800);
+  font-family: var(--sans); font-size: 11px; font-weight: 500;
+  letter-spacing: .32em; text-transform: uppercase;
+  transition: background .35s, letter-spacing .35s;
+}
+.pmk .gate-btn:hover { background: var(--emerald-700); letter-spacing: .4em; }
+.pmk .gate-err {
+  margin-top: 14px; min-height: 18px;
+  font-family: var(--sans); font-size: 11px; letter-spacing: .16em;
+  text-transform: uppercase; color: #9c3b2e; opacity: 0; transition: opacity .3s;
+}
+.pmk .gate-err.show { opacity: 1; animation: pmk-shake .4s; }
+@keyframes pmk-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* ══════════ DECK ══════════ */
+.pmk .deck {
+  position: fixed; inset: 0; opacity: 0; visibility: hidden;
+  transition: opacity .8s ease .1s, visibility .8s;
+}
+.pmk .deck.live { opacity: 1; visibility: visible; }
+.pmk .slide {
+  position: absolute; inset: 0; opacity: 0; visibility: hidden;
+  transition: opacity .55s ease, visibility .55s, transform .7s cubic-bezier(.2,.7,.2,1);
+  transform: translateY(14px); overflow: hidden;
+}
+.pmk .slide.on { opacity: 1; visibility: visible; transform: none; }
+.pmk .fit {
+  position: absolute; inset: 0; min-height: 0; min-width: 0;
+  padding: 74px 30px 92px; --px: 60px; z-index: 2; overflow: hidden;
+}
+.pmk .fit > .wrap {
+  position: absolute;
+  /* optical centre of the band between the bars, not of the slide box */
+  top: calc(50% + (var(--chrome-top) - var(--chrome-bot)) / 2);
+  left: 50%;
+  width: calc(100% - var(--px));
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
+}
+.pmk .wrap { width: 100%; max-width: 1240px; margin: 0 auto; text-align: center; }
+.pmk .wrap.wide { max-width: 1500px; }
+
+/* slide surfaces */
+.pmk .slide.light {
+  background:
+    radial-gradient(ellipse at 80% 0%, color-mix(in oklab, var(--gold-300), transparent 62%), transparent 52%),
+    radial-gradient(ellipse at 0% 100%, color-mix(in oklab, var(--gold-400), transparent 78%), transparent 55%),
+    linear-gradient(180deg, var(--champagne-50), var(--champagne));
+}
+.pmk .slide.plain { background: linear-gradient(180deg, var(--ivory), var(--champagne-50)); }
+.pmk .slide.deep {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(26,110,84,.4), transparent 60%),
+    linear-gradient(180deg, var(--emerald-900), var(--emerald-950));
+  color: var(--champagne);
+}
+.pmk .slide.deep .s-title { color: var(--champagne); }
+.pmk .slide.deep .eyebrow { color: var(--gold-400); }
+.pmk .slide.deep .s-lead,
+.pmk .slide.deep .points li,
+.pmk .slide.photo .points li { color: color-mix(in oklab, var(--champagne-light), transparent 20%); }
+.pmk .slide.photo { color: var(--champagne); }
+/* A portrait phone photo used full-bleed on a landscape screen crops hard;
+   bias the visible band upward so subjects are not cut off at the neck. */
+.pmk .s-bg { position: absolute; inset: 0; background-size: cover; background-position: center 32%; z-index: 0; }
+.pmk .slide.photo .s-bg { transform: scale(1.06); animation: pmk-slow-zoom 22s ease-out both; }
+@keyframes pmk-slow-zoom {
+  from { transform: scale(1.12); }
+  to { transform: scale(1.02); }
+}
+/* stand-in when the photo has not been dropped into public/ yet */
+.pmk .s-bg.pending {
+  animation: none; transform: none;
+  background:
+    radial-gradient(ellipse at 30% 25%, rgba(26,110,84,.55), transparent 60%),
+    radial-gradient(ellipse at 75% 80%, rgba(15,84,64,.5), transparent 62%),
+    linear-gradient(160deg, var(--emerald-800), var(--emerald-950));
+}
+.pmk .s-veil {
+  position: absolute; inset: 0; z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(4,34,26,.8), rgba(4,34,26,.74) 45%, rgba(4,34,26,.92)),
+    radial-gradient(ellipse at center, rgba(4,34,26,.4), transparent 72%);
+}
+/* z-index only. The design also set `position: relative` here, which at
+   0,4,0 outranked `.fit > .wrap`'s 0,3,0 `position: absolute` and dropped the
+   wrap back into normal flow on the three photo slides — so `width:
+   calc(100% - var(--px))` resolved against .fit's content box instead of its
+   padding box, making those slides 32px narrower and 16px off-centre.
+   It was never needed: .fit is already z-index 2, above the veil's 1. */
+.pmk .slide.photo .wrap { z-index: 2; }
+.pmk .slide.photo .s-title { color: var(--champagne); }
+.pmk .slide.photo .eyebrow { color: var(--gold-300); }
+.pmk .slide.photo .s-lead { color: color-mix(in oklab, var(--champagne-light), transparent 15%); }
+
+/* type */
+.pmk .s-title {
+  font-family: var(--display); font-weight: 400;
+  font-size: clamp(52px, 6.6vw, 86px); line-height: 1.02;
+  letter-spacing: .015em; color: var(--emerald-800); margin: 14px 0 0;
+}
+.pmk .s-title .accent {
+  font-family: var(--script); font-size: 1.42em; line-height: .5;
+  color: var(--gold-600); display: inline-block;
+}
+/* the wide-tracked date line on the welcome slide */
+.pmk .s-title.datestamp { font-size: clamp(26px, 3.2vw, 38px); letter-spacing: .3em; }
+.pmk .slide.deep .s-title .accent,
+.pmk .slide.photo .s-title .accent { color: var(--gold-400); }
+.pmk .s-sub {
+  font-family: var(--script); font-size: clamp(62px, 7.6vw, 100px);
+  color: var(--gold-600); line-height: .8; margin: 12px 0 0;
+}
+.pmk .slide.photo .s-sub,
+.pmk .slide.deep .s-sub { color: var(--gold-300); }
+.pmk .s-lead {
+  font-size: 26px; line-height: 1.62; max-width: 760px; margin: 16px auto 0;
+  color: color-mix(in oklab, var(--emerald-800), transparent 26%);
+}
+.pmk .verse {
+  margin: 22px auto 0; font-style: italic; font-size: 21px; line-height: 1.55;
+  color: color-mix(in oklab, var(--champagne-light), transparent 30%); max-width: 620px;
+}
+.pmk .verse cite {
+  display: block; font-style: normal; font-family: var(--sans); font-size: 13px;
+  letter-spacing: .36em; text-transform: uppercase; color: var(--gold-400); margin-top: 9px;
+}
+
+/* bullet list */
+.pmk .points {
+  list-style: none; padding: 0; margin: 28px auto 0; max-width: 860px;
+  display: grid; gap: 15px; text-align: left;
+}
+.pmk .points li {
+  position: relative; padding-left: 40px; font-size: 27px; line-height: 1.45;
+  color: color-mix(in oklab, var(--emerald-800), transparent 18%);
+}
+.pmk .points li::before {
+  content: ""; position: absolute; left: 9px; top: .6em;
+  width: 8px; height: 8px; border: 1px solid var(--gold-600); transform: rotate(45deg);
+}
+.pmk .slide.deep .points li::before { border-color: var(--gold-400); }
+
+/* cards */
+.pmk .cards { display: grid; gap: 18px; margin-top: 26px; text-align: left; }
+.pmk .cards.two { grid-template-columns: 1fr; }
+.pmk .cards.four { grid-template-columns: 1fr 1fr; }
+.pmk .card {
+  position: relative; padding: 24px 22px; background: var(--ivory);
+  border: 1px solid color-mix(in oklab, var(--gold-500), transparent 55%);
+  box-shadow: 0 26px 50px -34px rgba(10,63,48,.36);
+  transition: transform .5s ease, border-color .5s;
+}
+.pmk .card:hover { transform: translateY(-4px); border-color: var(--gold-500); }
+.pmk .card .k {
+  font-family: var(--sans); font-size: 13px; letter-spacing: .36em;
+  text-transform: uppercase; color: var(--gold-700); margin-bottom: 7px;
+}
+.pmk .card h3 {
+  font-family: var(--display); font-size: 31px; font-weight: 400;
+  letter-spacing: .04em; color: var(--emerald-800); margin: 0 0 9px;
+}
+.pmk .card ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.pmk .card li {
+  position: relative; padding-left: 20px; font-size: 23px; line-height: 1.42;
+  color: color-mix(in oklab, var(--emerald-800), transparent 24%);
+}
+.pmk .card li::before {
+  content: ""; position: absolute; left: 2px; top: .62em;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--gold-500);
+}
+.pmk .card.featured { background: linear-gradient(180deg, var(--cream), #efdfbe); border-color: var(--gold-500); }
+.pmk .note {
+  margin-top: 18px; padding: 18px 22px;
+  background: color-mix(in oklab, var(--gold-500), transparent 90%);
+  border: 1px dashed color-mix(in oklab, var(--gold-500), transparent 45%);
+  font-style: italic; font-size: 23px; line-height: 1.45;
+  color: color-mix(in oklab, var(--emerald-800), transparent 16%);
+}
+.pmk .note b { font-style: normal; font-weight: 500; color: var(--emerald-800); }
+
+/* date card */
+.pmk .datecard {
+  position: relative; max-width: 600px; margin: 24px auto 0; padding: 32px 26px 28px;
+  background: linear-gradient(180deg, var(--ivory), var(--cream));
+  border: 1px solid var(--gold-500);
+  box-shadow: 0 40px 70px -44px rgba(10,63,48,.45);
+}
+.pmk .datecard .dc-day {
+  font-family: var(--display); font-size: clamp(52px, 7.6vw, 84px);
+  line-height: .95; color: var(--emerald-800); letter-spacing: .03em;
+}
+.pmk .datecard .dc-yr {
+  font-family: var(--sans); font-size: 15px; letter-spacing: .5em;
+  text-transform: uppercase; color: var(--gold-700); margin-top: 11px;
+}
+.pmk .datecard .dc-venue {
+  font-family: var(--display); font-size: 35px; letter-spacing: .1em;
+  color: var(--emerald-700); margin-top: 16px;
+}
+.pmk .datecard .dc-loc {
+  font-style: italic; font-size: 22px;
+  color: color-mix(in oklab, var(--emerald-800), transparent 34%); margin-top: 2px;
+}
+
+/* budget */
+.pmk .bigfig {
+  font-family: var(--display); font-size: clamp(50px, 8.2vw, 98px); line-height: 1;
+  color: var(--emerald-800); letter-spacing: .01em; margin-top: 18px;
+}
+.pmk .bigfig small {
+  display: block; font-family: var(--sans); font-size: 14px; letter-spacing: .42em;
+  text-transform: uppercase; color: var(--gold-700); margin-top: 12px;
+}
+.pmk .slide.deep .bigfig { color: var(--champagne); }
+
+/* guest counts */
+.pmk .counts {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  margin: 24px auto 0; max-width: 860px;
+}
+.pmk .count {
+  position: relative; padding: 24px 10px 20px; background: var(--ivory);
+  border: 1px solid color-mix(in oklab, var(--gold-500), transparent 55%); text-align: center;
+}
+.pmk .count .n { font-family: var(--display); font-size: clamp(36px, 5vw, 56px); line-height: 1; color: var(--emerald-800); }
+.pmk .count .l {
+  font-family: var(--sans); font-size: 13px; letter-spacing: .3em;
+  text-transform: uppercase; color: var(--gold-700); margin-top: 9px;
+}
+.pmk .count.total { background: linear-gradient(180deg, var(--cream), #efdfbe); border-color: var(--gold-500); }
+
+/* timeline */
+.pmk .timeline { display: grid; gap: 0; margin-top: 30px; position: relative; grid-template-columns: 1fr; }
+.pmk .timeline::before {
+  content: ""; position: absolute; left: 11px; top: 10px; bottom: 10px; width: 1px;
+  background: linear-gradient(180deg, transparent, var(--gold-500), transparent);
+}
+.pmk .tl-item { position: relative; padding: 0 0 26px 44px; text-align: left; }
+.pmk .tl-item:last-child { padding-bottom: 0; }
+.pmk .tl-item::before {
+  content: ""; position: absolute; left: 5px; top: 8px; width: 13px; height: 13px;
+  border-radius: 50%; background: var(--gold-500);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--gold-500), transparent 82%);
+}
+.pmk .tl-time { font-family: var(--display); font-size: 36px; letter-spacing: .16em; color: var(--emerald-800); }
+.pmk .tl-what {
+  font-family: var(--sans); font-size: 13px; letter-spacing: .36em;
+  text-transform: uppercase; color: var(--gold-700); margin-top: 5px;
+}
+.pmk .slide.deep .tl-time { color: var(--champagne); }
+.pmk .slide.deep .tl-what { color: var(--gold-400); }
+
+/* stay timeline */
+.pmk .stay { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 24px; }
+.pmk .stay .cell {
+  padding: 22px 16px; background: var(--ivory);
+  border: 1px solid color-mix(in oklab, var(--gold-500), transparent 58%); text-align: center;
+}
+.pmk .stay .cell .k {
+  font-family: var(--sans); font-size: 12.5px; letter-spacing: .34em;
+  text-transform: uppercase; color: var(--gold-700);
+}
+.pmk .stay .cell .v {
+  font-family: var(--display); font-size: 29px; color: var(--emerald-800);
+  margin-top: 8px; letter-spacing: .05em;
+}
+
+/* quote slide */
+.pmk .quote {
+  font-family: var(--display); font-size: clamp(36px, 5vw, 62px); line-height: 1.26;
+  letter-spacing: .02em; max-width: 1000px; margin: 22px auto 0;
+}
+.pmk .quote em {
+  font-family: var(--script); font-style: normal; font-size: 1.34em;
+  line-height: .6; color: var(--gold-400);
+}
+
+/* collage
+   The source photos are phone shots at mixed orientation — the closing
+   collage holds 3 portrait (IMG_0762, IMG_0989, IMG_3152) and 3 landscape
+   (IMG_0601, IMG_1515, IMG_2607). The design's fixed row heights made wide
+   letterbox tiles, and object-fit:cover then sliced the top and bottom off
+   every portrait shot. Tiles are square instead: with both orientations in
+   one grid, 1:1 crops each by about a quarter rather than crushing one of
+   them. The focal point sits above centre, where faces are. */
+.pmk .collage {
+  display: grid; gap: 12px; margin: 24px auto 0;
+  grid-template-columns: repeat(3, 1fr);
+}
+.pmk .collage figure {
+  margin: 0; overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--gold-500), transparent 62%);
+  border-radius: var(--r); box-shadow: 0 18px 34px -24px rgba(10,63,48,.4);
+}
+.pmk .collage img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center 35%;
+  transition: transform 1.1s cubic-bezier(.2,.7,.2,1);
+}
+/* venue trio — square reads well for both the portrait and landscape sources */
+.pmk .collage.trio { max-width: 900px; }
+.pmk .collage.trio figure { aspect-ratio: 1 / 1; }
+/* couple collage — square, 3 across on phones (two rows) */
+.pmk .collage.grid6 { max-width: 1180px; }
+.pmk .collage.grid6 figure { aspect-ratio: 1 / 1; }
+
+/* stand-in tile when the photo has not been dropped into public/ yet */
+.pmk figure.pending {
+  display: grid; place-items: center; align-content: center; gap: 4px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(26,110,84,.35), transparent 65%),
+    linear-gradient(165deg, var(--emerald-800), var(--emerald-950));
+  color: var(--gold-400);
+}
+.pmk figure.pending .mono { font-family: var(--script); font-size: 46px; line-height: .82; color: var(--gold-500); }
+.pmk figure.pending .fn {
+  font-family: var(--sans); font-size: 9px; letter-spacing: .2em; text-transform: uppercase;
+  color: color-mix(in oklab, var(--gold-300), transparent 45%);
+  padding: 0 10px; text-align: center; word-break: break-all; line-height: 1.5;
+}
+
+.pmk .foot-quote {
+  margin-top: 22px; font-style: italic; font-size: 22px;
+  color: color-mix(in oklab, var(--emerald-800), transparent 40%);
+}
+.pmk .slide.deep .foot-quote { color: color-mix(in oklab, var(--champagne-light), transparent 42%); }
+
+/* symbols */
+.pmk .sym { width: 58px; height: 58px; margin: 0 auto; color: var(--gold-600); opacity: .9; }
+.pmk .slide.deep .sym,
+.pmk .slide.photo .sym { color: var(--gold-400); }
+
+/* ══════════ CHROME ══════════ */
+.pmk .bar {
+  position: fixed; left: 0; right: 0; z-index: 60;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px; pointer-events: none;
+}
+.pmk .bar.top { top: 0; }
+.pmk .bar.bot { bottom: 0; }
+.pmk .bar > * { pointer-events: auto; }
+.pmk .brand { font-family: var(--script); font-size: 30px; line-height: 1; color: var(--gold-600); }
+.pmk .chip { font-family: var(--sans); font-size: 12px; letter-spacing: .32em; text-transform: uppercase; color: var(--gold-700); }
+.pmk .counter {
+  font-family: var(--sans); font-size: 12px; letter-spacing: .3em; text-transform: uppercase;
+  color: var(--gold-700); white-space: nowrap; flex: 0 0 auto;
+}
+.pmk .counter b { font-family: var(--display); font-size: 19px; font-weight: 400; color: var(--emerald-800); margin: 0 3px; }
+.pmk .navs { display: flex; gap: 8px; }
+.pmk .nav-btn {
+  width: 46px; height: 46px; border-radius: 50%;
+  border: 1px solid color-mix(in oklab, var(--gold-500), transparent 45%);
+  background: rgba(251,245,230,.7);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  color: var(--emerald-800); display: grid; place-items: center; transition: all .3s;
+}
+.pmk .nav-btn:hover { background: var(--gold-500); border-color: var(--gold-500); color: var(--emerald-900); transform: scale(1.06); }
+.pmk .nav-btn:disabled { opacity: .32; cursor: not-allowed; transform: none; }
+.pmk .nav-btn svg { width: 20px; height: 20px; }
+.pmk .progress {
+  position: fixed; left: 0; bottom: 0; height: 2px; width: 100%;
+  background: color-mix(in oklab, var(--gold-500), transparent 82%); z-index: 61;
+}
+.pmk .progress i {
+  display: block; height: 100%; width: 0;
+  background: linear-gradient(90deg, var(--gold-600), var(--gold-400));
+  transition: width .5s cubic-bezier(.2,.7,.2,1);
+}
+.pmk .exit {
+  font-family: var(--sans); font-size: 12px; letter-spacing: .3em; text-transform: uppercase;
+  color: var(--gold-700);
+  border-bottom: 1px solid color-mix(in oklab, var(--gold-500), transparent 55%);
+  padding-bottom: 3px; transition: color .3s;
+}
+.pmk .exit:hover { color: var(--emerald-700); }
+.pmk .end-btn {
+  margin-top: 26px; padding: 18px 34px;
+  background: var(--emerald-800); color: var(--champagne);
+  border: 1px solid var(--emerald-800);
+  font-family: var(--sans); font-size: 14px; font-weight: 500;
+  letter-spacing: .32em; text-transform: uppercase; white-space: nowrap;
+  transition: background .35s, letter-spacing .35s;
+}
+.pmk .end-btn:hover { background: var(--emerald-700); letter-spacing: .4em; }
+
+/* dark-slide chrome inversion */
+body.pmk-dark .pmk .chip,
+body.pmk-dark .pmk .counter,
+body.pmk-dark .pmk .exit { color: var(--gold-300); }
+body.pmk-dark .pmk .counter b { color: var(--champagne); }
+body.pmk-dark .pmk .brand { color: var(--gold-300); }
+body.pmk-dark .pmk .nav-btn {
+  background: rgba(4,34,26,.35); color: var(--champagne);
+  border-color: color-mix(in oklab, var(--gold-500), transparent 50%);
+}
+body.pmk-dark .pmk .nav-btn:hover { background: var(--gold-500); color: var(--emerald-900); }
+body.pmk-dark .pmk .exit { border-bottom-color: color-mix(in oklab, var(--gold-400), transparent 55%); }
+
+/* ══════════ PHONE (portrait) ══════════
+   The base rules above are the design's desktop scale. On a phone they
+   overflow, and the scale-to-fit safety net compensates by shrinking whole
+   slides — measured as low as 0.54 — so type ended up a different size on
+   every slide. These overrides size the deck for the viewport instead, so
+   the fit rarely has to intervene and nothing clips. */
+@media (max-width: 759px) {
+  /* Shrink the chrome first, then the padding that has to clear it.
+     Measured: top bar 62px and bottom bar 78px at desktop chrome sizes. */
+  .pmk { --chrome-top: 42px; --chrome-bot: 60px; }
+  .pmk .bar { padding: 10px 14px; }
+  .pmk .brand { font-size: 22px; }
+  .pmk .chip { font-size: 9.5px; letter-spacing: .2em; }
+  .pmk .counter { font-size: 10px; letter-spacing: .18em; }
+  .pmk .counter b { font-size: 15px; }
+  .pmk .exit { font-size: 10px; letter-spacing: .18em; }
+  .pmk .navs { gap: 6px; }
+  .pmk .nav-btn { width: 40px; height: 40px; }
+  .pmk .nav-btn svg { width: 17px; height: 17px; }
+
+  .pmk .fit { padding: 50px 16px 68px; --px: 32px; }
+
+  /* type */
+  .pmk .eyebrow {
+    font-size: 11.5px;
+    letter-spacing: .26em;
+    /* nowrap + .45em tracking overflowed the viewport and clipped on slide 1 */
+    white-space: normal;
+  }
+  .pmk .s-title { font-size: clamp(35px, 9.2vw, 54px); margin-top: 10px; }
+  /* .3em tracking pushed this onto two lines at 390px */
+  .pmk .s-title.datestamp { font-size: 19px; letter-spacing: .17em; }
+  .pmk .s-sub { font-size: clamp(50px, 14vw, 66px); }
+  .pmk .s-lead { font-size: 19px; line-height: 1.55; margin-top: 12px; }
+  .pmk .verse { font-size: 16.5px; line-height: 1.5; margin-top: 16px; }
+  .pmk .verse cite { font-size: 10.5px; letter-spacing: .24em; margin-top: 7px; }
+  .pmk .quote { font-size: clamp(25px, 7vw, 37px); line-height: 1.3; margin-top: 16px; }
+  .pmk .foot-quote { font-size: 16.5px; margin-top: 16px; }
+  .pmk .sym { width: 44px; height: 44px; }
+
+  /* bullets */
+  .pmk .points { margin-top: 18px; gap: 11px; }
+  .pmk .points li { font-size: 19px; line-height: 1.4; padding-left: 26px; }
+  .pmk .points li::before { left: 4px; width: 6px; height: 6px; }
+
+  /* cards — align-items:start so a one-bullet card is not stretched to
+     match a three-bullet neighbour, which left large voids on the budget slide */
+  .pmk .cards { margin-top: 16px; gap: 12px; }
+  .pmk .cards.four { grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+  .pmk .card { padding: 15px 14px; }
+  .pmk .card .k { font-size: 10.5px; letter-spacing: .2em; margin-bottom: 5px; }
+  .pmk .card h3 { font-size: 22px; margin-bottom: 7px; }
+  .pmk .card ul { gap: 6px; }
+  .pmk .card li { font-size: 16.5px; line-height: 1.38; padding-left: 15px; }
+  .pmk .card li::before { width: 5px; height: 5px; }
+  .pmk .note { margin-top: 12px; padding: 13px 15px; font-size: 16.5px; line-height: 1.4; }
+
+  /* date card */
+  .pmk .datecard { margin-top: 16px; padding: 22px 16px 20px; }
+  .pmk .datecard .dc-day { font-size: clamp(37px, 10.4vw, 52px); }
+  .pmk .datecard .dc-yr { font-size: 11.5px; letter-spacing: .3em; margin-top: 8px; }
+  .pmk .datecard .dc-venue { font-size: 23px; letter-spacing: .06em; margin-top: 12px; }
+  .pmk .datecard .dc-loc { font-size: 17px; }
+
+  /* budget figure — the clamp() floor of 50px overflowed a 390px viewport */
+  .pmk .bigfig { font-size: clamp(30px, 9.2vw, 43px); margin-top: 12px; }
+  .pmk .bigfig small { font-size: 10.5px; letter-spacing: .26em; margin-top: 8px; }
+
+  /* guest counts — total on its own row, the two sides beneath it */
+  .pmk .counts { grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+  .pmk .count.total { grid-column: span 2; }
+  .pmk .count { padding: 15px 8px 13px; }
+  .pmk .count .n { font-size: clamp(28px, 8vw, 39px); }
+  .pmk .count .l { font-size: 10.5px; letter-spacing: .16em; margin-top: 6px; }
+
+  /* timeline */
+  .pmk .timeline { margin-top: 18px; }
+  .pmk .timeline::before { left: 7px; }
+  .pmk .tl-item { padding: 0 0 18px 32px; }
+  .pmk .tl-item::before { left: 2px; width: 10px; height: 10px; }
+  .pmk .tl-time { font-size: 27px; letter-spacing: .12em; }
+  .pmk .tl-what { font-size: 10.5px; letter-spacing: .24em; margin-top: 3px; }
+
+  /* stay */
+  .pmk .stay { gap: 10px; margin-top: 16px; }
+  .pmk .stay .cell { padding: 14px 8px; }
+  .pmk .stay .cell .k { font-size: 10px; letter-spacing: .18em; }
+  .pmk .stay .cell .v { font-size: 18.5px; margin-top: 5px; }
+
+  /* collages — 3 across; aspect-ratio tiles keep phone photos uncropped */
+  .pmk .collage { margin-top: 16px; gap: 8px; }
+  .pmk figure.pending .mono { font-size: 30px; }
+  .pmk figure.pending .fn { font-size: 7px; letter-spacing: .12em; }
+
+  .pmk .end-btn { margin-top: 16px; padding: 13px 22px; font-size: 11px; letter-spacing: .24em; }
+
+  /* gate */
+  .pmk .gate { padding: 18px; }
+  .pmk .gate-card { padding: 34px 24px 28px; }
+  .pmk .gate-mono { font-size: 62px; }
+  .pmk .gate-title { font-size: 22px; }
+  .pmk .gate-sub { font-size: 13px; margin-bottom: 20px; }
+}
+
+/* Short phones — iPhone SE, small Androids. Only ~520px of usable height, so
+   trim the rhythm again rather than let the fit shrink whole slides.
+   Must follow the block above: same specificity, so source order decides. */
+@media (max-width: 759px) and (max-height: 700px) {
+  .pmk .fit { padding: 46px 14px 62px; --px: 28px; }
+  .pmk .s-title { font-size: clamp(30px, 8.4vw, 44px); }
+  .pmk .s-lead { font-size: 17px; margin-top: 10px; }
+  .pmk .verse { font-size: 15px; margin-top: 12px; }
+  .pmk .quote { font-size: clamp(22px, 6.4vw, 32px); }
+  .pmk .sym { width: 38px; height: 38px; }
+
+  .pmk .points { margin-top: 14px; gap: 8px; }
+  .pmk .points li { font-size: 17px; line-height: 1.35; }
+
+  .pmk .cards { margin-top: 12px; gap: 9px; }
+  .pmk .card { padding: 12px; }
+  .pmk .card h3 { font-size: 19px; margin-bottom: 5px; }
+  .pmk .card ul { gap: 4px; }
+  .pmk .card li { font-size: 15px; line-height: 1.34; }
+  .pmk .note { margin-top: 10px; padding: 10px 12px; font-size: 15px; }
+
+  .pmk .datecard { margin-top: 12px; padding: 16px 14px 15px; }
+  .pmk .datecard .dc-day { font-size: clamp(32px, 9.2vw, 44px); }
+  .pmk .datecard .dc-yr { margin-top: 6px; }
+  .pmk .datecard .dc-venue { font-size: 20px; margin-top: 9px; }
+  .pmk .datecard .dc-loc { font-size: 15px; }
+
+  .pmk .bigfig { font-size: clamp(27px, 8.4vw, 38px); margin-top: 10px; }
+  .pmk .counts { margin-top: 12px; gap: 8px; }
+  .pmk .count { padding: 12px 6px 10px; }
+  .pmk .count .n { font-size: clamp(25px, 7.4vw, 34px); }
+
+  .pmk .timeline { margin-top: 14px; }
+  .pmk .tl-item { padding: 0 0 14px 30px; }
+  .pmk .tl-time { font-size: 24px; }
+
+  .pmk .stay { margin-top: 12px; gap: 8px; }
+  .pmk .stay .cell { padding: 11px 6px; }
+  .pmk .stay .cell .v { font-size: 16.5px; }
+
+  .pmk .collage { margin-top: 12px; gap: 7px; }
+  .pmk .end-btn { margin-top: 12px; padding: 11px 20px; }
+}
+
+@media (min-width: 760px) {
+  .pmk { --chrome-top: 74px; --chrome-bot: 90px; }
+  .pmk .fit { padding: 88px 56px 100px; --px: 112px; }
+  .pmk .cards.two { grid-template-columns: 1fr 1fr; gap: 26px; }
+  .pmk .cards.four { grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .pmk .collage { gap: 14px; }
+  /* six across in one row, so the closing slide is not downscaled to fit */
+  .pmk .collage.grid6 { grid-template-columns: repeat(6, 1fr); }
+  .pmk .collage figure:hover img { transform: scale(1.06); }
+  .pmk .timeline { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .pmk .timeline::before {
+    left: 10%; right: 10%; top: 16px; bottom: auto;
+    width: auto; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-500), transparent);
+  }
+  .pmk .tl-item { padding: 44px 8px 0; text-align: center; }
+  .pmk .tl-item::before { left: 50%; top: 10px; transform: translateX(-50%); }
+  .pmk .stay { grid-template-columns: repeat(4, 1fr); }
+  .pmk .bar { padding: 22px 40px; }
+}
+@media (min-width: 1500px) {
+  .pmk .fit { padding: 96px 72px 112px; --px: 144px; }
+}
+
+/* Wide but short — a landscape phone or a short desktop window. Scoped to
+   min-width so it cannot fight the phone-portrait block above, which already
+   sets tighter values and would otherwise be overridden by source order. */
+@media (min-width: 760px) and (max-height: 700px) {
+  .pmk .fit { padding: 68px 24px 88px; --px: 48px; }
+}
+@media (min-width: 760px) and (max-height: 560px) {
+  .pmk { --chrome-top: 36px; --chrome-bot: 52px; }
+  .pmk .bar { padding: 8px 16px; }
+  .pmk .brand { font-size: 20px; }
+  .pmk .navs { gap: 6px; }
+  .pmk .nav-btn { width: 36px; height: 36px; }
+  .pmk .nav-btn svg { width: 16px; height: 16px; }
+  .pmk .fit { padding: 44px 20px 56px; --px: 44px; }
+  .pmk .sym { width: 34px; height: 34px; }
+  .pmk .s-title { font-size: clamp(26px, 4.6vw, 40px); }
+  .pmk .s-sub { font-size: clamp(38px, 6.4vw, 56px); }
+  .pmk .s-lead { font-size: 16px; margin-top: 10px; }
+  .pmk .verse { font-size: 14px; margin-top: 12px; }
+  .pmk .quote { font-size: clamp(22px, 3.6vw, 32px); }
+  .pmk .points { gap: 8px; margin-top: 14px; }
+  .pmk .points li { font-size: 16px; line-height: 1.35; }
+  .pmk .cards { margin-top: 14px; }
+  .pmk .card { padding: 13px 14px; }
+  .pmk .card h3 { font-size: 19px; }
+  .pmk .card li { font-size: 14px; }
+  .pmk .collage { margin-top: 14px; gap: 10px; }
+}
+
+/* Phone held sideways — about 300px of usable height once the chrome is
+   cleared. Everything shrinks hard; the fit-scale still assists on the
+   densest slides, which is what it is there for. */
+@media (min-width: 760px) and (max-height: 450px) {
+  .pmk { --chrome-top: 29px; --chrome-bot: 42px; }
+  .pmk .bar { padding: 6px 14px; }
+  .pmk .brand { font-size: 17px; }
+  .pmk .chip { font-size: 9px; letter-spacing: .18em; }
+  .pmk .counter, .pmk .exit { font-size: 9px; letter-spacing: .16em; }
+  .pmk .counter b { font-size: 13px; }
+  .pmk .nav-btn { width: 30px; height: 30px; }
+  .pmk .nav-btn svg { width: 14px; height: 14px; }
+  .pmk .fit { padding: 34px 18px 42px; --px: 40px; }
+
+  .pmk .sym { width: 26px; height: 26px; }
+  .pmk .eyebrow { font-size: 9px; letter-spacing: .22em; }
+  .pmk .s-title { font-size: clamp(20px, 3.2vw, 30px); margin-top: 6px; }
+  .pmk .s-title.datestamp { font-size: 17px; letter-spacing: .22em; }
+  .pmk .s-sub { font-size: clamp(30px, 5vw, 44px); }
+  .pmk .s-lead { font-size: 13px; line-height: 1.45; margin-top: 7px; }
+  .pmk .verse { font-size: 12px; line-height: 1.4; margin-top: 9px; }
+  .pmk .verse cite { font-size: 8.5px; margin-top: 4px; }
+  .pmk .quote { font-size: clamp(17px, 2.8vw, 25px); line-height: 1.25; margin-top: 9px; }
+  .pmk .foot-quote { font-size: 12px; margin-top: 9px; }
+
+  .pmk .points { margin-top: 9px; gap: 5px; }
+  .pmk .points li { font-size: 13px; line-height: 1.3; padding-left: 22px; }
+  .pmk .points li::before { width: 5px; height: 5px; left: 6px; }
+
+  .pmk .cards { margin-top: 9px; gap: 9px; }
+  .pmk .card { padding: 9px 11px; }
+  .pmk .card .k { font-size: 8.5px; letter-spacing: .18em; margin-bottom: 3px; }
+  .pmk .card h3 { font-size: 15px; margin-bottom: 4px; }
+  .pmk .card ul { gap: 3px; }
+  .pmk .card li { font-size: 12.5px; line-height: 1.3; padding-left: 13px; }
+  .pmk .note { margin-top: 8px; padding: 8px 11px; font-size: 12.5px; line-height: 1.35; }
+
+  .pmk .datecard { margin-top: 9px; padding: 12px 14px 11px; }
+  .pmk .datecard .dc-day { font-size: clamp(24px, 4vw, 34px); }
+  .pmk .datecard .dc-yr { font-size: 9px; letter-spacing: .34em; margin-top: 4px; }
+  .pmk .datecard .dc-venue { font-size: 16px; margin-top: 7px; }
+  .pmk .datecard .dc-loc { font-size: 12.5px; }
+
+  .pmk .bigfig { font-size: clamp(22px, 3.8vw, 34px); margin-top: 7px; }
+  .pmk .bigfig small { font-size: 8.5px; letter-spacing: .3em; margin-top: 5px; }
+
+  .pmk .counts { margin-top: 9px; gap: 8px; }
+  .pmk .count { padding: 9px 6px 8px; }
+  .pmk .count .n { font-size: clamp(20px, 3.2vw, 28px); }
+  .pmk .count .l { font-size: 8.5px; letter-spacing: .16em; margin-top: 4px; }
+
+  .pmk .timeline { margin-top: 10px; }
+  .pmk .tl-item { padding: 30px 6px 0; }
+  .pmk .tl-time { font-size: 19px; }
+  .pmk .tl-what { font-size: 8.5px; letter-spacing: .26em; margin-top: 2px; }
+
+  .pmk .stay { margin-top: 9px; gap: 8px; }
+  .pmk .stay .cell { padding: 8px 6px; }
+  .pmk .stay .cell .k { font-size: 8.5px; letter-spacing: .16em; }
+  .pmk .stay .cell .v { font-size: 14px; margin-top: 3px; }
+
+  .pmk .collage { margin-top: 9px; gap: 7px; }
+  .pmk .end-btn { margin-top: 9px; padding: 8px 16px; font-size: 10px; letter-spacing: .2em; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pmk *,
+  .pmk *::before,
+  .pmk *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
