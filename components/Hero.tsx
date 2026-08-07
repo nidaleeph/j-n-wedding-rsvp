@@ -1,3 +1,32 @@
+import fs from "node:fs";
+import path from "node:path";
+
+/**
+ * The hero background video.
+ *
+ * Rendered only when the file is actually in `public/hero/` — otherwise the
+ * still `.hero-bg` behind it carries the section on its own, so a missing
+ * encode degrades to the old hero rather than to a black rectangle. The still
+ * also covers the cases the video can't: `prefers-reduced-motion`, a browser
+ * that refuses to autoplay, and the moments before the first frame decodes.
+ */
+const HERO_DIR = path.join(process.cwd(), "public", "hero");
+const VIDEO = "hero.mp4";
+const POSTER = "hero-poster.jpg";
+
+function heroAssets() {
+  let files: string[] = [];
+  try {
+    files = fs.readdirSync(HERO_DIR);
+  } catch {
+    /* no hero directory yet */
+  }
+  return {
+    video: files.includes(VIDEO) ? `/hero/${VIDEO}` : null,
+    poster: files.includes(POSTER) ? `/hero/${POSTER}` : undefined,
+  };
+}
+
 const CornerOrnament = ({ pos }: { pos: "tl" | "tr" | "bl" | "br" }) => (
   <svg
     className={`hero-orn ${pos}`}
@@ -38,8 +67,24 @@ function AnimatedName({ name, baseDelay }: { name: string; baseDelay: number }) 
 }
 
 export function Hero() {
+  const { video, poster } = heroAssets();
+
   return (
     <header className="hero" id="top">
+      {video && (
+        <video
+          className="hero-video"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          poster={poster}
+          aria-hidden
+        >
+          <source src={video} type="video/mp4" />
+        </video>
+      )}
       <div className="hero-bg" />
 
       <CornerOrnament pos="tl" />

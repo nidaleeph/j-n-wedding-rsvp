@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export function EnvelopeIntro() {
   const [open, setOpen] = useState(false);
   const [gone, setGone] = useState(false);
-  const introRef = useRef<HTMLDivElement | null>(null);
+  const [unmounted, setUnmounted] = useState(false);
 
   // lock body scroll while intro is visible
   useEffect(() => {
@@ -52,10 +52,18 @@ export function EnvelopeIntro() {
     return arr;
   }, []);
 
-  // remove the DOM node after the fade-out finishes
+  // Drop the node once the fade-out finishes.
+  //
+  // This used to call introRef.current?.remove(), which detached a
+  // React-managed node behind React's back. React kept the removed node in its
+  // tree, so the next time it unmounted this subtree — i.e. any client-side
+  // navigation away from this page — it threw "Failed to execute 'removeChild'
+  // on 'Node': The node to be removed is not a child of this node" and the
+  // destination page rendered nothing. Unmounting via state keeps React the
+  // sole owner of the DOM.
   useEffect(() => {
     if (!gone) return;
-    const t = setTimeout(() => introRef.current?.remove(), 1400);
+    const t = setTimeout(() => setUnmounted(true), 1400);
     return () => clearTimeout(t);
   }, [gone]);
 
@@ -71,8 +79,10 @@ export function EnvelopeIntro() {
     }
   }
 
+  if (unmounted) return null;
+
   return (
-    <div ref={introRef} className={`intro${gone ? " gone" : ""}`} id="intro">
+    <div className={`intro${gone ? " gone" : ""}`} id="intro">
       <div className="intro-spark">
         {sparks.map((s) => (
           <span

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const links = [
@@ -63,6 +64,12 @@ export function Nav() {
             {l.label}
           </a>
         ))}
+        {/* Its own route rather than a section of this page. Safe to link
+            publicly — the presentation sits behind its own login. */}
+        <Link href="/pamamanhikan" className="drawer-aside" onClick={close}>
+          Pamamanhikan
+          <span>Family presentation</span>
+        </Link>
       </div>
     </>
   );

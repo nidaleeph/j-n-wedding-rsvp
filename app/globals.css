@@ -495,6 +495,35 @@ input, select, textarea { font: inherit; color: inherit; }
 .menu-open .nav-drawer a:nth-child(7) { transition-delay: .58s; }
 .nav-drawer a:hover { color: var(--gold-400); }
 
+/* Pamamanhikan link — a separate route, not a section of this page, so it is
+   set below a small rule and given a subtitle. The stagger above is driven by
+   :nth-child, and this is the 8th child, so it needs its own delay. */
+.menu-open .nav-drawer a:nth-child(8) { transition-delay: .66s; }
+.nav-drawer .drawer-aside {
+  margin-top: 4px;
+  font-size: 26px;
+  color: var(--gold-300);
+  text-align: center;
+}
+.nav-drawer .drawer-aside::before {
+  content: "";
+  display: block;
+  width: 44px; height: 1px;
+  margin: 0 auto 22px;
+  background: color-mix(in oklab, var(--gold-500), transparent 45%);
+}
+.nav-drawer .drawer-aside span {
+  display: block;
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--champagne), transparent 45%);
+  margin-top: 9px;
+  transition: color .3s;
+}
+.nav-drawer .drawer-aside:hover span { color: var(--gold-400); }
+
 /* ============================================================
    HERO
    ============================================================ */
@@ -509,8 +538,21 @@ input, select, textarea { font: inherit; color: inherit; }
   padding: 100px 20px 80px;
   text-align: center;
 }
-.hero-bg {
+/* Sits over .hero-bg, under the gradient scrim. The still stays in the markup
+   as the fallback: it shows before the first frame decodes, if autoplay is
+   refused, and whenever motion is turned down. */
+.hero-video {
   position: absolute; inset: 0; z-index: -3;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-video { display: none; }
+}
+
+.hero-bg {
+  position: absolute; inset: 0; z-index: -4;
   background-image: url("https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1800&q=85");
   background-size: cover;
   background-position: center 35%;
@@ -939,15 +981,20 @@ section { position: relative; padding: 96px 22px; }
 .gallery-sec .section-title em { color: var(--gold-600); }
 .gallery-sec .lead { color: color-mix(in oklab, var(--emerald-800), transparent 30%); }
 
+/* Mobile keeps it simple: the lead photo full width, everything else in equal
+   squares two across. The 1/2/3/2/3/1 mosaic only comes in at 720px, where
+   there's room for a three-across row to still be worth looking at. */
 .gallery {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-auto-rows: 200px;
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   margin-top: 56px;
 }
+.g-item.t1 { grid-column: span 2; aspect-ratio: 16 / 9; }
 .g-item {
   position: relative; overflow: hidden;
+  aspect-ratio: 1;
+  grid-column: span 1;
   border: 1px solid color-mix(in oklab, var(--gold-500), transparent 65%);
   box-shadow: 0 20px 40px -28px rgba(10,63,48,0.35);
   cursor: zoom-in;
@@ -970,14 +1017,6 @@ section { position: relative; padding: 96px 22px; }
   transition: opacity .5s, transform .5s; z-index: 3;
 }
 .g-item:hover .tag { opacity: 1; transform: none; }
-
-.g-item.a { grid-column: span 2; grid-row: span 2; }
-.g-item.b { grid-column: span 1; grid-row: span 1; }
-.g-item.c { grid-column: span 2; grid-row: span 1; }
-.g-item.d { grid-column: span 1; grid-row: span 2; }
-.g-item.e { grid-column: span 1; grid-row: span 1; }
-.g-item.f { grid-column: span 1; grid-row: span 1; }
-.g-item.g { grid-column: span 2; grid-row: span 1; }
 
 /* ============================================================
    DETAILS
@@ -1641,17 +1680,13 @@ footer .cred { margin-top: 26px; font-size: 10px; opacity: .55; letter-spacing: 
   .story-row.flip .story-img { order: 2; }
   .story-rows { gap: 140px; }
   .letter-grid { grid-template-columns: 1fr 1fr; gap: 40px; }
-  .gallery {
-    grid-template-columns: repeat(6, 1fr);
-    grid-auto-rows: 160px;
-  }
-  .g-item.a { grid-column: span 3; grid-row: span 3; }
-  .g-item.b { grid-column: span 3; grid-row: span 2; }
-  .g-item.c { grid-column: span 2; grid-row: span 2; }
-  .g-item.d { grid-column: span 4; grid-row: span 2; }
-  .g-item.e { grid-column: span 2; grid-row: span 2; }
-  .g-item.f { grid-column: span 3; grid-row: span 2; }
-  .g-item.g { grid-column: span 3; grid-row: span 2; }
+  /* Row size picks the tile shape: a banner, a wide half, a tall third. The
+     frame order in gallery-frames.ts puts landscapes in the 1- and 2-tile rows
+     and portraits in the 3-tile rows, so nothing is cropped against itself. */
+  .gallery { grid-template-columns: repeat(6, 1fr); gap: 14px; }
+  .g-item.t1 { grid-column: span 6; aspect-ratio: 16 / 9; }
+  .g-item.t2 { grid-column: span 3; aspect-ratio: 4 / 3; }
+  .g-item.t3 { grid-column: span 2; aspect-ratio: 3 / 4; }
   .detail-cards { grid-template-columns: 1fr 1fr; gap: 32px; }
   .rsvp-card { padding: 56px 56px; }
 }

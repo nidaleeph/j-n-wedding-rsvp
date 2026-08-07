@@ -1,72 +1,51 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-type Item = { cls: string; src: string; tag: string; delay: string };
+import { FRAMES, GALLERY_DIR } from "./gallery-frames";
 
-const items: Item[] = [
-  {
-    cls: "a",
-    src: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
-    tag: "Together",
-    delay: "",
-  },
-  {
-    cls: "b",
-    src: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=900&q=80",
-    tag: "The Ring",
-    delay: "d1",
-  },
-  {
-    cls: "c",
-    src: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80",
-    tag: "Promises",
-    delay: "d2",
-  },
-  {
-    cls: "d",
-    src: "https://images.unsplash.com/photo-1525772764200-be829a350797?auto=format&fit=crop&w=1100&q=80",
-    tag: "Forever",
-    delay: "d1",
-  },
-  {
-    cls: "e",
-    src: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=700&q=80",
-    tag: "Always",
-    delay: "d2",
-  },
-  {
-    cls: "f",
-    src: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=700&q=80",
-    tag: "Details",
-    delay: "d3",
-  },
-  {
-    cls: "g",
-    src: "https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=900&q=80",
-    tag: "Florals",
-    delay: "d2",
-  },
-];
+/**
+ * Tiles per row, down the section. The trailing pair repeats if the gallery
+ * ever grows past twelve, so it keeps alternating rather than falling apart.
+ */
+const ROW_PATTERN = [1, 2, 3, 2, 3, 1];
 
-function upgradeUrl(src: string) {
-  return src.replace(/w=\d+/, "w=1600").replace(/q=\d+/, "q=85");
+/** How many tiles share each frame's row — drives the tile shape in CSS. */
+function rowSizes(count: number): number[] {
+  const out: number[] = [];
+  for (let i = 0, row = 0; i < count; row += 1) {
+    const n = Math.min(
+      row < ROW_PATTERN.length ? ROW_PATTERN[row] : row % 2 ? 3 : 2,
+      count - i
+    );
+    for (let k = 0; k < n; k += 1) out.push(n);
+    i += n;
+  }
+  return out;
 }
 
-export function Gallery() {
+export function Gallery({ availablePhotos }: { availablePhotos: string[] }) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
 
-  const open = useCallback((i: number) => {
-    setOpenIdx(((i % items.length) + items.length) % items.length);
-  }, []);
+  // A frame with no file on disk is skipped rather than rendered broken, so the
+  // gallery stays presentable while photos are still being collected.
+  const frames = useMemo(() => {
+    const present = new Set(availablePhotos);
+    return FRAMES.filter((f) => present.has(f.file));
+  }, [availablePhotos]);
+
+  const count = frames.length;
+  const sizes = useMemo(() => rowSizes(count), [count]);
+
+  const open = useCallback((i: number) => setOpenIdx(i), []);
   const close = useCallback(() => setOpenIdx(null), []);
   const next = useCallback(
-    () => setOpenIdx((i) => (i === null ? null : (i + 1) % items.length)),
-    []
+    () => setOpenIdx((i) => (i === null ? null : (i + 1) % count)),
+    [count]
   );
   const prev = useCallback(
-    () => setOpenIdx((i) => (i === null ? null : (i - 1 + items.length) % items.length)),
-    []
+    () => setOpenIdx((i) => (i === null ? null : (i - 1 + count) % count)),
+    [count]
   );
 
   useEffect(() => {
@@ -84,7 +63,9 @@ export function Gallery() {
     };
   }, [openIdx, close, next, prev]);
 
-  const current = openIdx !== null ? items[openIdx] : null;
+  const current = openIdx !== null ? frames[openIdx] : null;
+
+  if (count === 0) return null;
 
   return (
     <>
@@ -100,11 +81,14 @@ export function Gallery() {
         </div>
 
         <div className="container gallery">
-          {items.map((it, i) => (
+          {frames.map((it, i) => (
             <div
-              key={it.cls}
-              className={["g-item", it.cls, "reveal", it.delay].filter(Boolean).join(" ")}
+              key={it.file}
+              className={["g-item", `t${sizes[i]}`, "reveal", i % 3 ? `d${i % 3}` : ""]
+                .filter(Boolean)
+                .join(" ")}
               role="button"
+              aria-label={`Open ${it.tag}`}
               tabIndex={0}
               onClick={() => open(i)}
               onKeyDown={(e) => {
@@ -115,11 +99,17 @@ export function Gallery() {
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img loading="lazy" src={it.src} alt={it.tag} />
+              <img
+                loading="lazy"
+                src={`${GALLERY_DIR}${it.file}`}
+                alt={it.alt}
+                style={it.focus ? { objectPosition: it.focus } : undefined}
+              />
               <div className="tag">{it.tag}</div>
             </div>
           ))}
         </div>
+
       </section>
 
       <div
@@ -133,7 +123,7 @@ export function Gallery() {
       >
         <div className="lightbox-stage">
           <div className="lightbox-count">
-            <em>{openIdx !== null ? openIdx + 1 : 1}</em> / <em>{items.length}</em>
+            <em>{openIdx !== null ? openIdx + 1 : 1}</em> / <em>{count}</em>
           </div>
           <button
             className="lightbox-close"
@@ -169,8 +159,8 @@ export function Gallery() {
           <div className="lightbox-img-wrap">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={current ? upgradeUrl(current.src) : ""}
-              alt={current?.tag ?? ""}
+              src={current ? `${GALLERY_DIR}${current.file}` : ""}
+              alt={current?.alt ?? ""}
             />
             <div className="lightbox-meta">{current?.tag ?? ""}</div>
           </div>
