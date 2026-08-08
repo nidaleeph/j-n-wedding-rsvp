@@ -655,6 +655,11 @@ input, select, textarea { font: inherit; color: inherit; }
 
 .hero-meta {
   display: flex; flex-direction: column; align-items: center;
+  /* Needed for the row variant at >=760px below. In a column, `align-items`
+     is the horizontal (cross) axis and does the centring; once the direction
+     flips to row, horizontal becomes the main axis and `align-items` no longer
+     applies to it — without this the date and place packed to the left edge. */
+  justify-content: center;
   gap: 10px;
   opacity: 0;
   animation: ifade 1s ease 2.7s forwards;
