@@ -95,9 +95,7 @@ drizzle.config.ts
 2. **Gift details** — the bank account number, GCash number, and QR pattern in
    [`components/Rsvp.tsx`](components/Rsvp.tsx) are placeholders. The QR is a
    stylized SVG — render a real QR image once you have one.
-3. **Map link** — `https://maps.google.com/?q=Jardin+de+Miracles+Tagaytay` in
-   [`components/Details.tsx`](components/Details.tsx). Swap for the exact pin.
-4. **Seed the `guests` table** — see SQL example above.
+3. **Seed the `guests` table** — see SQL example above.
 
 ## Deploy to Vercel
 

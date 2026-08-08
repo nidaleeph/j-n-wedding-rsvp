@@ -1,5 +1,7 @@
 export function Details() {
-  const mapUrl = "https://maps.google.com/?q=Jardin+de+Miracles+Tagaytay";
+  // Shortlink is opaque, so for the record: it resolves to
+  // maps/place/Jardin+de+Milagros+Events+Place @14.1451456,120.9915242
+  const mapUrl = "https://maps.app.goo.gl/turQPRuJo3rTQArr5";
 
   return (
     <section className="details" id="details">
